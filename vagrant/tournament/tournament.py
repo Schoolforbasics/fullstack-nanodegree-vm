@@ -2,12 +2,13 @@
 #
 # tournament.py -- implementation of a Swiss-system tournament
 #
+"""My implementation of the Swiss-system tournament"""
 
 import psycopg2
-import re
 
 def connect():
-    """Connect to the PostgreSQL database.  Returns a database connection."""
+    """Connect to the PostgreSQL database.
+    Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
 
 
@@ -49,7 +50,7 @@ def registerPlayer(name):
     mycursor = myconn.cursor()
     query = mycursor.mogrify(
             "INSERT INTO players (fullname,wins,matches)" \
-           " VALUES (%s, %s, %s)", (name, 0, 0))
+            " VALUES (%s, %s, %s)", (name, 0, 0))
     mycursor.execute(query)
     myconn.commit()
     myconn.close()
@@ -57,12 +58,12 @@ def registerPlayer(name):
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
 
-    The first entry in the list should be the player in first place, or a player
-    tied for first place if there is currently a tie.
+    The first entry in the list should be the player in first place,
+    or a player tied for first place if there is currently a tie.
 
     Returns:
-      A list of tuples, each of which contains (id, name, wins, matches):
-        id: the player's unique id (assigned by the database)
+       A list of tuples, each of which contains (id, name, wins, matches):
+         id: the player's unique id (assigned by the database)
         name: the player's full name (as registered)
         wins: the number of matches the player has won
         matches: the number of matches the player has played
@@ -82,13 +83,13 @@ def reportMatch(winner, loser):
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
-    """
+     """
 
     myconn = connect()
     mycursor = myconn.cursor()
     winnerq = mycursor.mogrify("UPDATE players " \
-            "SET (wins, matches) = (wins+1, matches+1) " \
-            "WHERE playerid = %s", [winner])
+           "SET (wins, matches) = (wins+1, matches+1) " \
+           "WHERE playerid = %s", [winner])
     mycursor.execute(winnerq)
     loserq = "UPDATE players " \
             "SET (matches) = (matches+1) " \
@@ -100,10 +101,10 @@ def reportMatch(winner, loser):
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
 
-    Assuming that there are an even number of players registered, each player
-    appears exactly once in the pairings.  Each player is paired with another
-    player with an equal or nearly-equal win record, that is, a player adjacent
-    to him or her in the standings.
+    Assuming that there are an even number of players registered,
+    each player appears exactly once in the pairings.  Each player
+    is paired with another player with an equal or nearly-equal
+    win record, that is, a player adjacent to him or her in the standings.
 
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
@@ -118,12 +119,9 @@ def swissPairings():
     mycursor.execute(
             "SELECT playerid, fullname FROM players ORDER BY wins DESC;")
     results = mycursor.fetchall()
-    newresults=[]
+    newresults = []
     for i in range(0, len(results), 2):
         newresults.append(list(results[i] + results[i+1]))
     myconn.commit()
     myconn.close()
     return newresults
-
-
-
