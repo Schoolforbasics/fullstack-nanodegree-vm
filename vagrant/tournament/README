@@ -1,0 +1,7 @@
+Tournament instructions
+
+Clone the repository.
+
+run the python tests:
+
+python tournament_test.py
