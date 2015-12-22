@@ -2,6 +2,10 @@ Tournament instructions
 
 Change to the tournament directory.
 
+Load the database:
+
+psql -c '\i tournament.sql'
+
 run the python tests:
 
 python tournament_test.py
