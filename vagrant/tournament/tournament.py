@@ -14,6 +14,13 @@ def connect():
 
 def deleteMatches():
     """Remove all the match records from the database."""
+    myconn = connect()
+    mycursor = myconn.cursor()
+    mycursor.execute('DELETE from matches;')
+    rows = mycursor.rowcount
+    myconn.commit()
+    myconn.close()
+    return rows
 
 
 def deletePlayers():
@@ -31,8 +38,7 @@ def countPlayers():
     myconn = connect()
     mycursor = myconn.cursor()
     mycursor.execute('SELECT * from players;')
-    rows = mycursor.rowcount
-    rows = 0 if rows is None else rows
+    rows = len(mycursor.fetchall())
     myconn.close()
     return rows
 
@@ -48,8 +54,8 @@ def registerPlayer(name):
     myconn = connect()
     mycursor = myconn.cursor()
     query = mycursor.mogrify(
-            "INSERT INTO players (fullname,wins,matches)" \
-            " VALUES (%s, %s, %s)", (name, 0, 0))
+            "INSERT INTO players (fullname)" \
+            " VALUES (%s)", (name,))
     mycursor.execute(query)
     myconn.commit()
     myconn.close()
@@ -68,12 +74,22 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
+    rows=[]
     myconn = connect()
     mycursor = myconn.cursor()
-    mycursor.execute("SELECT * FROM players ORDER BY wins DESC;")
-    rows = mycursor.fetchall()
+    mycursor.execute("SELECT * FROM players;")
+    players = mycursor.fetchall()
+    for player in players:
+        mycursor.execute("SELECT * FROM matches where winner=%s;", (player[0],))
+        wins = len(mycursor.fetchall())
+        mycursor.execute(
+            "SELECT * FROM matches where winner=%s or loser=%s;",
+            (player[0],player[0]))
+        matches = len(mycursor.fetchall())
+        rows.append((player[0], player[1], wins, matches))
+
     myconn.close()
-    return rows
+    return sorted(rows, key=lambda player: player[2], reverse=True)
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -85,14 +101,9 @@ def reportMatch(winner, loser):
 
     myconn = connect()
     mycursor = myconn.cursor()
-    winnerq = mycursor.mogrify("UPDATE players " \
-           "SET (wins, matches) = (wins+1, matches+1) " \
-           "WHERE playerid = %s", [winner])
-    mycursor.execute(winnerq)
-    loserq = "UPDATE players " \
-            "SET (matches) = (matches+1) " \
-            "WHERE playerid = %s"
-    mycursor.execute(loserq, [loser])
+    match = mycursor.mogrify("INSERT INTO  matches " \
+           "VALUES (%s, %s);", (winner, loser))
+    mycursor.execute(match)
     myconn.commit()
     myconn.close()
 

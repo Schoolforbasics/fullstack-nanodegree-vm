@@ -11,9 +11,7 @@ Create Database tournament;
 \c tournament;
 Create Table players (
   playerId    serial NOT NULL PRIMARY KEY,
-  fullname    varchar(48) NOT NULL,
-  wins        integer,
-  matches     integer
+  fullname    varchar(48) NOT NULL
 );
 
 CREATE TABLE matches (
