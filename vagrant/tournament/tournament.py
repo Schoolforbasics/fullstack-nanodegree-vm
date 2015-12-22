@@ -33,7 +33,6 @@ def countPlayers():
     mycursor.execute('SELECT * from players;')
     rows = mycursor.rowcount
     rows = 0 if rows is None else rows
-    myconn.commit()
     myconn.close()
     return rows
 
@@ -71,9 +70,8 @@ def playerStandings():
 
     myconn = connect()
     mycursor = myconn.cursor()
-    mycursor.execute("SELECT * FROM players;")
+    mycursor.execute("SELECT * FROM players ORDER BY wins DESC;")
     rows = mycursor.fetchall()
-    myconn.commit()
     myconn.close()
     return rows
 
@@ -114,14 +112,9 @@ def swissPairings():
         name2: the second player's name
     """
 
-    myconn = connect()
-    mycursor = myconn.cursor()
-    mycursor.execute(
-            "SELECT playerid, fullname FROM players ORDER BY wins DESC;")
-    results = mycursor.fetchall()
+    results = playerStandings()
     newresults = []
     for i in range(0, len(results), 2):
-        newresults.append(list(results[i] + results[i+1]))
-    myconn.commit()
-    myconn.close()
+        newresults.append((results[i][0], results[i][1],
+                          results[i+1][0], results[i+1][1]))
     return newresults

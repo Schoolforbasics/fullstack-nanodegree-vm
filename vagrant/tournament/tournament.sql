@@ -16,3 +16,9 @@ Create Table players (
   matches     integer
 );
 
+CREATE TABLE matches (
+  winner INT REFERENCES players(playerId),
+  loser INT REFERENCES players(playerId),
+  PRIMARY KEY(winner, loser)
+);
+
